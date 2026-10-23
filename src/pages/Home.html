@@ -1,1 +1,47 @@
-<section><h1>Histórias que prendem você.</h1><p>Em breve, filmes para sua próxima maratona.</p></section>
+<section
+  class="hero"
+  aria-labelledby="hero-title"
+  aria-roledescription="carrossel"
+>
+  <img
+    class="hero-backdrop"
+    alt=""
+    hidden
+  />
+  <p class="eyebrow hero-eyebrow">FILMES E SÉRIES PARA SUA PRÓXIMA MARATONA</p>
+  <div class="hero-content">
+    <h1 id="hero-title">Histórias que prendem você.</h1>
+    <p class="hero-description">
+      Encontre seu próximo favorito. Uma nova história espera por você.
+    </p>
+    <p class="hero-synopsis" hidden>
+      <span data-hero-synopsis></span>
+      <a class="hero-link" data-route>… Saiba mais</a>
+    </p>
+  </div>
+  <div class="carousel-controls" hidden>
+    <div class="carousel-indicators-list" aria-label="Selecionar destaque"></div>
+  </div>
+</section>
+<section>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">ESCOLHA SUA PRÓXIMA HISTÓRIA</p>
+      <h4 >Em alta</h4>
+    </div>
+    <span class="category-pill">POPULAR</span>
+  </div>
+  <div
+    data-status
+    role="status"
+    aria-live="polite"
+  ></div>
+  <div
+    class="movie-grid"
+    data-grid
+  ></div>
+  <div
+    data-pagination
+    class="pagination-bar"
+  ></div>
+</section>
