@@ -1,0 +1,303 @@
+﻿/*
+  Estilos da tela pages/Search.html, começando pelo celular.
+  Organiza a busca com lupa, o painel, a nota e as classificações por imagem.
+  Classes correspondem aos elementos atuais; respostas da API e eventos
+  continuam nos controllers. Min-width amplia o layout para telas maiores.
+ */
+
+.filter-form {
+  margin: 24px 0;
+}
+
+.search-toolbar {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0 24px;
+}
+
+.search-toolbar .search-form {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+  padding: 7px 8px 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #151a24;
+}
+
+.search-form input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 9px 0;
+  border: 0;
+  background: transparent;
+  color: #f5f6fb;
+  font-size: 13px;
+}
+
+.search-form input::placeholder {
+  color: var(--muted);
+}
+
+.search-icon-button {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.search-icon-button:hover {
+  color: #ff4868;
+}
+
+.search-toolbar .filter-toggle {
+  min-height: 48px;
+  margin-left: auto;
+  padding: 9px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.filter-panel {
+  margin-bottom: 28px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.filter-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 14px;
+}
+
+.filter-fields label {
+  display: block;
+  margin-bottom: 7px;
+  color: #c0c9d9;
+  font-size: 12px;
+}
+
+.filter-fields input[type='number'],
+.filter-fields select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 8px;
+  border: 1px solid #353e52;
+  border-radius: 7px;
+  background: #090e1a;
+  color: #f5f6fb;
+  font-size: 13px;
+}
+
+.filter-fields select:focus-visible {
+  outline: 3px solid #ff748c;
+  outline-offset: 4px;
+}
+
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.rating-filter,
+.classificacao {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.rating-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rating-heading output {
+  color: #c0c9d9;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.rating-range {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.classificacao {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.classificacao legend {
+  float: none;
+  width: auto;
+  margin-bottom: 10px;
+  color: #c0c9d9;
+  font-size: 12px;
+}
+
+.classificacao-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.classificacao-opcoes label {
+  position: relative;
+  margin: 0;
+  cursor: pointer;
+}
+
+.classificacao-opcoes span {
+  display: grid;
+  place-items: center;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 3px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: #090e1a;
+  color: #c0c9d9;
+  font-size: 12px;
+}
+
+.classificacao-opcoes img {
+  display: block;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.classificacao-opcoes input:checked + span {
+  border-color: #ff4868;
+  background: #242131;
+}
+
+.classificacao-opcoes input:focus-visible + span {
+  outline: 3px solid #ff748c;
+  outline-offset: 3px;
+}
+
+.empty-results {
+  padding: 28px 18px;
+  border-color: #51432c;
+  text-align: center;
+}
+
+.empty-results-content {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.empty-results-icon {
+  display: block;
+  margin-bottom: 8px;
+  color: #ffcd61;
+  font-size: 40px;
+  line-height: 1;
+}
+
+.empty-results h3 {
+  color: #f5f6fb;
+  font-size: 19px;
+}
+
+.empty-results p {
+  margin: 12px 0 20px;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 361px) {
+  .search-toolbar {
+    flex-wrap: nowrap;
+  }
+
+  .search-toolbar .search-form {
+    flex-basis: 0%;
+  }
+
+  .search-toolbar .filter-toggle {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 601px) {
+  .search-toolbar {
+    gap: 12px;
+    margin: 24px 0 28px;
+  }
+
+  .search-toolbar .search-form {
+    gap: 12px;
+    padding: 8px 10px 8px 16px;
+  }
+
+  .search-form input {
+    font-size: 16px;
+  }
+
+  .search-toolbar .filter-toggle {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .filter-panel {
+    padding: 24px;
+  }
+
+  .filter-fields {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .filter-fields input[type='number'],
+  .filter-fields select {
+    padding: 11px;
+    font-size: 14px;
+  }
+}
+
+/* No computador, os dois controles largos dividem a mesma linha. */
+@media (min-width: 1001px) {
+  .filter-fields {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .filter-fields > div:not(.rating-filter) {
+    grid-column: span 2;
+  }
+
+  .rating-filter,
+  .classificacao {
+    grid-column: span 3;
+  }
+}

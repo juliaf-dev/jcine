@@ -5,6 +5,6 @@ export function resolveRoute(location) {
   const page = Math.min(500, Math.max(1, parseInt(params.get('pagina'), 10) || 1));
   if (path === '/') return { name: 'home', page };
   const match = path.match(/^\/filme\/(\d+)$/); if (match) return { name: 'details', id: match[1] };
-  
+  if (path === '/busca') return { name: 'search', page, query: (params.get('q') || '').trim().slice(0, 150) };
   return { name: 'notFound' };
 }

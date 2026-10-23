@@ -13,9 +13,10 @@ import notFound from '../pages/NotFound.html?raw';
 import { resolveRoute } from '../routers/routes.js';
 import { request, imageUrl, movieYear, movieRating } from '../utils/tmdb.js';
 import details from '../pages/Details.html?raw';
+import search from '../pages/Search.html?raw';
 const getFavorites = () => [];
 const searchParams = (route, page) => new URLSearchParams({ q: route.query, pagina: page });
-const pages = { home, notFound, details };
+const pages = { home, notFound, details, search };
 const pageTitles = {
   home: 'Descubra seu próximo filme',
   search: 'Buscar filmes',
@@ -202,13 +203,13 @@ export function mountApplication(root) {
     updateNav(route);
     document.title = pageTitles[route.name] + ' | JCine';
     if (route.name === 'notFound') return;
+    if (route.name === 'search') find('.filter-form').elements.q.value = route.query;
     
-    
-    
+    if (route.name === 'search' && !route.query) return;
     status('Carregando filmes…');
     try {
       if (route.name === 'details') { await loadDetails(route, signal); return; }
-      const query = 
+      const query = route.name === 'search' ? {path: '/search/movie', params: {query: route.query, page: route.page, include_adult: false}} :
         { path: '/movie/popular', params: {page: route.page, include_adult: false} };
       const data = await request(query.path, query.params, signal);
       if (signal.aborted || disposed) return;
@@ -218,7 +219,7 @@ export function mountApplication(root) {
       if (!data.results.length) status('Nenhum filme encontrado.');
       renderCards(data.results);
       paginate(data, route);
-      
+      if (route.name === 'search') setResultLabel(`${data.total_results} filmes encontrados.`);
     } catch (error) {
       if (error.name !== 'AbortError' && !signal.aborted && !disposed) status(error.message, true);
     }
@@ -248,7 +249,7 @@ export function mountApplication(root) {
   }
   
   root.addEventListener('click', onClick);
-  
+  root.addEventListener('submit', onSubmit);
   
   window.addEventListener('popstate', render);
   
@@ -257,7 +258,7 @@ export function mountApplication(root) {
     disposed = true;
     abort?.abort();
     root.removeEventListener('click', onClick);
-    
+    root.removeEventListener('submit', onSubmit);
     
     window.removeEventListener('popstate', render);
     
