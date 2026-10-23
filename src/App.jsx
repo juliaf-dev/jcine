@@ -1,4 +1,5 @@
-// Base React antes da montagem das telas.
+import AppRouter from './routers/AppRouter.jsx';
+
 export default function App() {
-  return <main className="container py-5"><h1>JCine</h1></main>;
+  return <AppRouter />;
 }

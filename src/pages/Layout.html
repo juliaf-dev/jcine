@@ -1,0 +1,119 @@
+<header class="site-header">
+  <div class="container header-inner">
+    <a
+      class="brand"
+      href="/"
+      aria-label="JCine, início"
+      data-route
+    >
+      <span class="brand-logo-frame">
+        <img
+          class="brand-logo"
+          src="/jcine-logo.png"
+          alt="JCine"
+          width="2000"
+          height="2000"
+        />
+      </span>
+    </a>
+    <nav
+      class="desktop-nav"
+      aria-label="Principal"
+    >
+      <a
+        href="/"
+        data-route
+      >
+        Início
+      </a>
+      <a
+        href="/busca"
+        data-route
+      >
+        Buscar
+      </a>
+      <a
+        href="/favoritos"
+        data-route
+      >
+        Favoritos
+        <span data-favorite-count>0</span>
+      </a>
+    </nav>
+  </div>
+</header>
+<main
+  id="main"
+  class="container main-content"
+  tabindex="-1"
+></main>
+<footer class="container site-footer">
+  <strong>JCine</strong>
+  <br>
+  <a
+    href="https://www.themoviedb.org/"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Dados e imagens: TMDB https://www.themoviedb.org
+  </a>
+</footer>
+<nav
+  class="mobile-nav"
+  aria-label="Principal mobile"
+>
+  <a
+    href="/"
+    data-route
+  >
+    <span aria-hidden="true">⌂</span>
+    Início
+  </a>
+  <a
+    href="/busca"
+    data-route
+  >
+    <span aria-hidden="true">⌕</span>
+    Buscar
+  </a>
+  <a
+    href="/favoritos"
+    data-route
+  >
+    <span aria-hidden="true">♡</span>
+    Favoritos
+  </a>
+</nav>
+<template id="card-template">
+  <article class="movie-card">
+    <a
+      class="poster-link"
+      data-route
+    >
+      <div class="poster-wrap">
+        <img
+          loading="lazy"
+          alt=""
+        />
+        <span
+          class="poster-fallback"
+          hidden
+        >
+          Cartaz indisponível
+        </span>
+        <span class="card-rating"></span>
+      </div>
+    </a>
+    <div class="card-info">
+      <h3></h3>
+      <p class="movie-year"></p>
+      <a
+        class="more-link"
+        data-route
+      >
+        Saiba mais
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </article>
+</template>
