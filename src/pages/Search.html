@@ -1,13 +1,255 @@
+<!--
+  Esta é a tela da barra de busca e do painel expansível de filtros.
+  filterController preenche os campos; movieController envia a consulta
+  e atualiza resultados e paginação nos elementos marcados com data-*.
+-->
 <section>
   <h2>Buscar filmes</h2>
-  <form class="filter-form" role="search">
-    <div class="search-toolbar"><div class="search-form">
-      <input name="q" type="search" maxlength="150" aria-label="Título do filme" placeholder="Título...">
-      <button type="submit" class="search-icon-button" aria-label="Buscar filmes">⌕</button>
-    </div></div>
+  <form
+    class="filter-form"
+    role="search"
+  >
+    <div class="search-toolbar">
+      <div class="search-form">
+        <button
+          type="submit"
+          class="search-icon-button"
+          aria-label="Buscar filmes"
+          value="titulo"
+        >
+          <span aria-hidden="true">⌕</span>
+        </button>
+        <input
+          id="filter-query"
+          name="q"
+          type="search"
+          aria-label="Título do filme"
+          placeholder="Título..."
+          maxlength="150"
+          spellcheck="true"
+          autocomplete="on"
+        />
+      </div>
+
+      <!-- Filtros -->
+      <button
+        type="button"
+        class="btn btn-outline-light filter-toggle"
+        aria-expanded="false"
+        aria-controls="search-filters"
+        data-filter-toggle
+      >
+        <span aria-hidden="true">☷</span> Filtros
+      </button>
+    </div>
+    <div
+      id="search-filters"
+      class="filter-panel"
+      hidden
+    >
+      <div class="filter-fields">
+        <div>
+          <label for="filter-year">Ano de lançamento</label>
+          <input
+            id="filter-year"
+            name="ano"
+            type="number"
+            min="1"
+            max="2100"
+            step="1"
+            placeholder="Qualquer ano"
+          />
+        </div>
+        <div>
+          <label for="filter-genre">Gênero</label>
+          <select
+            id="filter-genre"
+            name="genero"
+          >
+            <option value="">Todos os gêneros</option>
+          </select>
+        </div>
+        <div>
+          <label for="filter-language">Idioma original</label>
+          <select
+            id="filter-language"
+            name="idioma"
+          >
+            <option value="">Todos os idiomas</option>
+          </select>
+        </div>
+        <div class="rating-filter">
+          <div class="rating-heading">
+            <label for="filter-rating">Nota mínima</label>
+            <output for="filter-rating" data-rating-value>Sem nota mínima</output>
+          </div>
+          <input
+            class="rating-range"
+            id="filter-rating"
+            name="nota"
+            type="range"
+            min="0"
+            max="10"
+            step="1"
+            value="0"
+          />
+        </div>
+        <fieldset class="classificacao">
+          <legend>Classificação indicativa</legend>
+          <div class="classificacao-opcoes">
+            <label title="Todas as classificações">
+              <input
+                class="visually-hidden"
+                type="radio"
+                name="classificacao"
+                value=""
+                aria-label="Todas"
+                checked
+              />
+              <span>Todas</span>
+            </label>
+            <label title="Livre">
+              <input
+                class="visually-hidden"
+                type="radio"
+                name="classificacao"
+                value="L"
+                aria-label="Livre"
+              />
+              <span>
+                <img
+                  src="/classificacao/l.png"
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+              </span>
+            </label>
+            <label title="10 anos">
+              <input
+                class="visually-hidden"
+                type="radio"
+                name="classificacao"
+                value="10"
+                aria-label="10 anos"
+              />
+              <span>
+                <img
+                  src="/classificacao/10.png"
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+              </span>
+            </label>
+            <label title="12 anos">
+              <input
+                class="visually-hidden"
+                type="radio"
+                name="classificacao"
+                value="12"
+                aria-label="12 anos"
+              />
+              <span>
+                <img
+                  src="/classificacao/12.png"
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+              </span>
+            </label>
+            <label title="14 anos">
+              <input
+                class="visually-hidden"
+                type="radio"
+                name="classificacao"
+                value="14"
+                aria-label="14 anos"
+              />
+              <span>
+                <img
+                  src="/classificacao/14.png"
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+              </span>
+            </label>
+            <label title="16 anos">
+              <input
+                class="visually-hidden"
+                type="radio"
+                name="classificacao"
+                value="16"
+                aria-label="16 anos"
+              />
+              <span>
+                <img
+                  src="/classificacao/16.png"
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+              </span>
+            </label>
+            <label title="18 anos">
+              <input
+                class="visually-hidden"
+                type="radio"
+                name="classificacao"
+                value="18"
+                aria-label="18 anos"
+              />
+              <span>
+                <img
+                  src="/classificacao/18.png"
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+              </span>
+            </label>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="filter-actions">
+        <button
+          class="btn btn-danger"
+          type="submit"
+          value="explorar"
+        >
+          Filtrar
+        </button>
+        <a
+          class="btn btn-outline-light"
+          href="/busca"
+          data-route
+        >
+          Limpar filtro
+        </a>
+      </div>
+    </div>
   </form>
-  <p data-result-label></p>
-  <div data-status role="status" aria-live="polite"></div>
-  <div class="movie-grid" data-grid></div>
-  <div class="pagination-bar" data-pagination></div>
+  <template id="empty-results-template">
+    <div class="empty-results-content">
+      <span class="empty-results-icon" aria-hidden="true">⌕</span>
+      <h3>Nenhum filme encontrado</h3>
+      <p data-empty-message></p>
+    </div>
+  </template>
+  <div
+    data-status
+    role="status"
+    aria-live="polite"
+  ></div>
+  <div
+    class="movie-grid"
+    data-grid
+  ></div>
+  <div
+    data-pagination
+    class="pagination-bar"
+  ></div>
 </section>

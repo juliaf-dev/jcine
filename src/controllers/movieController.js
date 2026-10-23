@@ -14,8 +14,9 @@ import { resolveRoute } from '../routers/routes.js';
 import { request, imageUrl, movieYear, movieRating } from '../utils/tmdb.js';
 import details from '../pages/Details.html?raw';
 import search from '../pages/Search.html?raw';
+import { setupFilters, filterFormUrl } from './filterController.js';
+import { searchParams, searchRequest, isValidYear } from '../utils/searchFilters.js';
 const getFavorites = () => [];
-const searchParams = (route, page) => new URLSearchParams({ q: route.query, pagina: page });
 const pages = { home, notFound, details, search };
 const pageTitles = {
   home: 'Descubra seu próximo filme',
@@ -203,20 +204,23 @@ export function mountApplication(root) {
     updateNav(route);
     document.title = pageTitles[route.name] + ' | JCine';
     if (route.name === 'notFound') return;
-    if (route.name === 'search') find('.filter-form').elements.q.value = route.query;
+    if (route.name === 'search') {
+      setupFilters(find('.filter-form'), route);
+      if (route.filters.invalidYear) { showInvalidYear(); return; }
+    }
     
-    if (route.name === 'search' && !route.query) return;
+    if (route.name === 'search' && route.filters.mode === 'titulo' && !route.query) return;
     status('Carregando filmes…');
     try {
       if (route.name === 'details') { await loadDetails(route, signal); return; }
-      const query = route.name === 'search' ? {path: '/search/movie', params: {query: route.query, page: route.page, include_adult: false}} :
+      const query = route.name === 'search' ? searchRequest(route) :
         { path: '/movie/popular', params: {page: route.page, include_adult: false} };
       const data = await request(query.path, query.params, signal);
       if (signal.aborted || disposed) return;
       
       
       status('');
-      if (!data.results.length) status('Nenhum filme encontrado.');
+      if (!data.results.length) showEmptyResults(route);
       renderCards(data.results);
       paginate(data, route);
       if (route.name === 'search') setResultLabel(`${data.total_results} filmes encontrados.`);
@@ -224,6 +228,55 @@ export function mountApplication(root) {
       if (error.name !== 'AbortError' && !signal.aborted && !disposed) status(error.message, true);
     }
   }
+    function showEmptyResults(route, invalidYear = false) {
+      const template = find('#empty-results-template');
+      if (!template) {
+        status('Nenhum filme encontrado no momento. Tente novamente mais tarde.');
+        return;
+      }
+      const content = template.content.cloneNode(true);
+        if (invalidYear) content.querySelector('h3').textContent = 'Ano inválido';
+        else if (route.filters.year) {
+          content.querySelector('h3').textContent =
+            `Nenhum filme encontrado em ${route.filters.year}`;
+        }
+        const message = invalidYear
+          ? 'Digite um ano inteiro de 1 a 2100 ou deixe o campo vazio. ' +
+            'Nenhuma pesquisa foi enviada com esse valor.'
+          : route.filters.mode === 'explorar'
+        ? 'Nenhum filme corresponde aos filtros selecionados. ' +
+          'Tente outro ano, gênero ou uma nota mínima menor.'
+        : `Não encontramos resultados para “${route.query}”. ` +
+          'Confira a digitação ou tente outro título ou ano.';
+      content.querySelector('[data-empty-message]').textContent = message;
+      const box = find('[data-status]');
+      box.className = 'status-box empty-results';
+      box.append(content);
+    }
+
+    // Exibe a validação na própria tela, inclusive se o painel estiver recolhido.
+    function showInvalidYear() {
+      status('');
+      find('[data-grid]')?.replaceChildren();
+      find('[data-pagination]')?.replaceChildren();
+      showEmptyResults(resolveRoute(window.location), true);
+      const panel = find('#search-filters');
+      if (panel) panel.hidden = false;
+      find('[data-filter-toggle]')?.setAttribute('aria-expanded', 'true');
+      const yearField = find('#filter-year');
+      yearField?.setAttribute('aria-invalid', 'true');
+      yearField?.focus({ preventScroll: true });
+    }
+
+    // Substitui apenas o balão nativo de ano pelo aviso visível na tela.
+    function onInvalid(event) {
+      if (event.target.id !== 'filter-year') return;
+      event.preventDefault();
+      showInvalidYear();
+    }
+
+    // Intercepta cliques simples em links internos marcados com data-route; preserva os
+  // atalhos para abrir outra aba.
   function onClick(event) {
     const link = event.target.closest('a[data-route]');
     if (
@@ -244,13 +297,16 @@ export function mountApplication(root) {
   function onSubmit(event) {
     if (!event.target.matches('.filter-form')) return;
     event.preventDefault();
-    const query = event.target.elements.q.value.trim();
-    navigate('/busca?' + new URLSearchParams({q: query}));
+    const yearField = event.target.elements.ano;
+    if (!yearField.validity.valid || !isValidYear(yearField.value)) {
+      showInvalidYear(); return;
+    }
+    navigate(filterFormUrl(event.target, event.submitter));
   }
   
   root.addEventListener('click', onClick);
   root.addEventListener('submit', onSubmit);
-  
+  root.addEventListener('invalid', onInvalid, true);
   window.addEventListener('popstate', render);
   
   render();
@@ -259,7 +315,7 @@ export function mountApplication(root) {
     abort?.abort();
     root.removeEventListener('click', onClick);
     root.removeEventListener('submit', onSubmit);
-    
+    root.removeEventListener('invalid', onInvalid, true);
     window.removeEventListener('popstate', render);
     
   };
