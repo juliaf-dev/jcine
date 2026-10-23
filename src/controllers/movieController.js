@@ -9,17 +9,18 @@
  */
 
 import home from '../pages/Home.html?raw';
+import search from '../pages/Search.html?raw';
+import favorites from '../pages/Favorites.html?raw';
+import details from '../pages/Details.html?raw';
 import notFound from '../pages/NotFound.html?raw';
 import { resolveRoute } from '../routers/routes.js';
 import { request, imageUrl, movieYear, movieRating } from '../utils/tmdb.js';
-import details from '../pages/Details.html?raw';
-import search from '../pages/Search.html?raw';
+import { getFavorites, toggleFavorite } from '../utils/favorites.js';
 import { setupFilters, filterFormUrl } from './filterController.js';
 import { searchParams, searchRequest, isValidYear } from '../utils/searchFilters.js';
 import { suggestMovies } from '../utils/fuzzySearch.js';
-import favorites from '../pages/Favorites.html?raw';
-import { getFavorites, toggleFavorite } from '../utils/favorites.js';
-const pages = { home, notFound, details, search, favorites };
+import { mountCarousel } from './carouselController.js';
+const pages = { home, search, favorites, details, notFound };
 const pageTitles = {
   home: 'Descubra seu próximo filme',
   search: 'Buscar filmes',
@@ -28,6 +29,8 @@ const pageTitles = {
   notFound: 'Página não encontrada',
 };
 
+// Recebe o elemento raiz, registra eventos e carrega a rota atual. Retorna uma função
+// para limpar eventos e cancelar requisições.
 export function mountApplication(root) {
   const main = root.querySelector('#main');
   let abort;
@@ -222,19 +225,24 @@ export function mountApplication(root) {
   // Cancela a consulta anterior, escolhe o template da rota e carrega seus dados. Trata
   // estados vazios, erros e sugestões de títulos.
   async function render() {
+    cleanupCarousel?.();
+    cleanupCarousel = undefined;
     abort?.abort();
     abort = new AbortController();
     const { signal } = abort;
     const route = resolveRoute(window.location);
     main.innerHTML = pages[route.name];
     updateNav(route);
-    document.title = pageTitles[route.name] + ' | JCine';
-    if (route.name === 'notFound') return;
+    document.title = `${pageTitles[route.name]} | JCine`;
     if (route.name === 'search') {
       setupFilters(find('.filter-form'), route);
-      if (route.filters.invalidYear) { showInvalidYear(); return; }
+      if (route.filters.invalidYear) {
+        showInvalidYear();
+        return;
+      }
     }
-        if (route.name === 'favorites') {
+    if (route.name === 'notFound') return;
+    if (route.name === 'favorites') {
       const saved = getFavorites();
       const savedLabel = saved.length === 1 ? 'filme salvo nos favoritos' : 'filmes favoritos';
       setResultLabel(`${saved.length} ${savedLabel}`);
@@ -246,17 +254,25 @@ export function mountApplication(root) {
         );
       return;
     }
-
-    if (route.name === 'search' && route.filters.mode === 'titulo' && !route.query) return;
+    if (route.name === 'search' && route.filters.mode === 'titulo' && !route.query)
+      return;
     status('Carregando filmes…');
     try {
-      if (route.name === 'details') { await loadDetails(route, signal); return; }
-      const query = route.name === 'search' ? searchRequest(route) :
-        { path: '/movie/popular', params: {page: route.page, include_adult: false} };
+      if (route.name === 'details') {
+        await loadDetails(route, signal);
+        return;
+      }
+      const query =
+        route.name === 'search'
+          ? searchRequest(route)
+          : {
+              path: '/movie/popular',
+              params: { page: route.page, include_adult: false },
+            };
       const data = await request(query.path, query.params, signal);
       if (signal.aborted || disposed) return;
       const yearLabel = route.filters?.year ? `, de ${route.filters.year}` : '';
-            if (
+      if (
         route.name === 'search' &&
         route.filters.mode === 'titulo' &&
         !data.results.length &&
@@ -281,16 +297,25 @@ export function mountApplication(root) {
           return;
         }
       }
-
       status('');
-      if (!data.results.length) showEmptyResults(route);
+      if (!data.results.length) {
+        showEmptyResults(route);
+      }
       renderCards(data.results);
       paginate(data, route);
-      if (route.name === 'search') setResultLabel(`${data.total_results} filmes encontrados.`);
+      if (route.name === 'search')
+        setResultLabel(
+          route.filters.mode === 'explorar'
+            ? `${data.total_results} filmes encontrados com os filtros selecionados.`
+            : `${data.total_results} resultados para “${route.query}”${yearLabel}`,
+        );
+      else cleanupCarousel = mountCarousel(find('.hero'), data.results);
     } catch (error) {
-      if (error.name !== 'AbortError' && !signal.aborted && !disposed) status(error.message, true);
+      if (error.name !== 'AbortError' && !signal.aborted && !disposed)
+        status(error.message, true);
     }
   }
+    // Mostra uma orientação específica quando a API não retorna filmes.
     function showEmptyResults(route, invalidYear = false) {
       const template = find('#empty-results-template');
       if (!template) {
@@ -356,31 +381,35 @@ export function mountApplication(root) {
   }
   // Impede o recarregamento do formulário e navega para a URL correspondente à busca
   // simples ou aos filtros.
-
   function onSubmit(event) {
     if (!event.target.matches('.filter-form')) return;
     event.preventDefault();
     const yearField = event.target.elements.ano;
     if (!yearField.validity.valid || !isValidYear(yearField.value)) {
-      showInvalidYear(); return;
+      showInvalidYear();
+      return;
     }
     navigate(filterFormUrl(event.target, event.submitter));
   }
+  // Atualiza a tela quando os favoritos são alterados em outra aba do mesmo navegador.
   function onStorage(event) {
     if (event.key === 'cinebusca:favorites:v1' || event.key === null) render();
   }
   root.addEventListener('click', onClick);
   root.addEventListener('submit', onSubmit);
-  root.addEventListener('invalid', onInvalid, true);
+    root.addEventListener('invalid', onInvalid, true);
   window.addEventListener('popstate', render);
   window.addEventListener('storage', onStorage);
   render();
+  // O React executa esta limpeza ao desmontar: evita eventos duplicados e respostas
+  // atrasadas.
   return () => {
     disposed = true;
+    cleanupCarousel?.();
     abort?.abort();
     root.removeEventListener('click', onClick);
     root.removeEventListener('submit', onSubmit);
-    root.removeEventListener('invalid', onInvalid, true);
+      root.removeEventListener('invalid', onInvalid, true);
     window.removeEventListener('popstate', render);
     window.removeEventListener('storage', onStorage);
   };
