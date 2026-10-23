@@ -20,7 +20,7 @@ export function resolveRoute(location) {
       page,
       filters: readFilters(params),
     };
-
+  if (path === '/favoritos') return { name: 'favorites' };
   const match = path.match(/^\/filme\/(\d+)$/);
   if (match) return { name: 'details', id: match[1] };
   return { name: 'notFound' };// Caminhos desconhecidos viram notFound.

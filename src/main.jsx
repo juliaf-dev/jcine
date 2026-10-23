@@ -6,6 +6,7 @@ import './styles/components.css';
 import './styles/home.css';
 import './styles/search.css';
 import './styles/details.css';
+import './styles/favorites.css';
 import './styles/not-found.css';
 import App from './App.jsx';
 

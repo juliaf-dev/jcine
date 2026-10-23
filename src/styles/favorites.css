@@ -1,0 +1,12 @@
+/*
+  Contém apenas os ajustes próprios de pages/Favorites.html.
+  O prefixo favorites-page limita as regras a essa tela.
+  Cards e grade usam components.css para manter o mesmo visual do catálogo.
+ */
+.favorites-page h1 {
+  font-weight: 750;
+}
+
+.favorites-page > .section-description {
+  margin-bottom: 24px;
+}

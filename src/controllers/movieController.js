@@ -17,8 +17,9 @@ import search from '../pages/Search.html?raw';
 import { setupFilters, filterFormUrl } from './filterController.js';
 import { searchParams, searchRequest, isValidYear } from '../utils/searchFilters.js';
 import { suggestMovies } from '../utils/fuzzySearch.js';
-const getFavorites = () => [];
-const pages = { home, notFound, details, search };
+import favorites from '../pages/Favorites.html?raw';
+import { getFavorites, toggleFavorite } from '../utils/favorites.js';
+const pages = { home, notFound, details, search, favorites };
 const pageTitles = {
   home: 'Descubra seu próximo filme',
   search: 'Buscar filmes',
@@ -170,6 +171,30 @@ export function mountApplication(root) {
       movie.genres?.map((genre) => genre.name).join(' · ') || 'Gênero não informado';
     article.querySelector('.overview').textContent =
       movie.overview || 'Sinopse ainda não disponível em português.';
+    const button = article.querySelector('[data-toggle-favorite]');
+    // Sincroniza texto e estado acessível do botão com o localStorage, além do contador
+    // da navegação.
+    function syncFavorite() {
+      const saved = getFavorites().some((item) => item.id === movie.id);
+      button.textContent = saved
+        ? '♥ Remover dos favoritos'
+        : '♡ Adicionar aos favoritos';
+      button.setAttribute('aria-pressed', String(saved));
+      updateNav(route);
+    }
+    syncFavorite();
+    // Salva a alteração feita pelo usuário e comunica o resultado sem sair da tela.
+    button.addEventListener('click', () => {
+      try {
+        const saved = toggleFavorite(movie);
+        syncFavorite();
+        article.querySelector('.save-message').textContent = saved
+          ? 'Filme salvo nos seus favoritos.'
+          : 'Filme removido dos favoritos.';
+      } catch (error) {
+        article.querySelector('.save-message').textContent = error.message;
+      }
+    });
     let videos = movie.videos?.results || [];
     if (!videos.some((video) => video.site === 'YouTube' && video.type === 'Trailer')) {
       try {
@@ -209,7 +234,19 @@ export function mountApplication(root) {
       setupFilters(find('.filter-form'), route);
       if (route.filters.invalidYear) { showInvalidYear(); return; }
     }
-    
+        if (route.name === 'favorites') {
+      const saved = getFavorites();
+      const savedLabel = saved.length === 1 ? 'filme salvo nos favoritos' : 'filmes favoritos';
+      setResultLabel(`${saved.length} ${savedLabel}`);
+      renderCards(saved);
+      if (!saved.length)
+        status(
+          'Sua lista está esperando a primeira história. ' +
+            'Abra um filme e toque em “Adicionar aos favoritos”.',
+        );
+      return;
+    }
+
     if (route.name === 'search' && route.filters.mode === 'titulo' && !route.query) return;
     status('Carregando filmes…');
     try {
@@ -329,12 +366,14 @@ export function mountApplication(root) {
     }
     navigate(filterFormUrl(event.target, event.submitter));
   }
-  
+  function onStorage(event) {
+    if (event.key === 'cinebusca:favorites:v1' || event.key === null) render();
+  }
   root.addEventListener('click', onClick);
   root.addEventListener('submit', onSubmit);
   root.addEventListener('invalid', onInvalid, true);
   window.addEventListener('popstate', render);
-  
+  window.addEventListener('storage', onStorage);
   render();
   return () => {
     disposed = true;
@@ -343,6 +382,6 @@ export function mountApplication(root) {
     root.removeEventListener('submit', onSubmit);
     root.removeEventListener('invalid', onInvalid, true);
     window.removeEventListener('popstate', render);
-    
+    window.removeEventListener('storage', onStorage);
   };
 }
