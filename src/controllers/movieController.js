@@ -12,9 +12,10 @@ import home from '../pages/Home.html?raw';
 import notFound from '../pages/NotFound.html?raw';
 import { resolveRoute } from '../routers/routes.js';
 import { request, imageUrl, movieYear, movieRating } from '../utils/tmdb.js';
+import details from '../pages/Details.html?raw';
 const getFavorites = () => [];
 const searchParams = (route, page) => new URLSearchParams({ q: route.query, pagina: page });
-const pages = { home, notFound };
+const pages = { home, notFound, details };
 const pageTitles = {
   home: 'Descubra seu próximo filme',
   search: 'Buscar filmes',
@@ -143,6 +144,55 @@ export function mountApplication(root) {
   }
   // Consulta o filme e seus vídeos, preenche os detalhes e conecta os favoritos.
   // Procura trailer em inglês se faltar em português.
+  async function loadDetails(route, signal) {
+    const movie = await request(
+      `/movie/${route.id}`,
+      { append_to_response: 'videos' },
+      signal,
+    );
+    if (signal.aborted || disposed) return;
+    status('');
+    document.title = `${movie.title} | JCine`;
+    const article = find('.detail-layout');
+    article.hidden = false;
+    setPoster(article.querySelector('img'), movie.poster_path, movie.title);
+    article.querySelector('h1').textContent = movie.title;
+    const duration = movie.runtime
+      ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}min`
+      : 'Duração não informada';
+    article.querySelector('.detail-meta').textContent =
+      `★ ${movieRating(movie)} / 10 · ${movieYear(movie)} · ${duration}`;
+    article.querySelector('.tagline').textContent = movie.tagline || '';
+    article.querySelector('.genres').textContent =
+      movie.genres?.map((genre) => genre.name).join(' · ') || 'Gênero não informado';
+    article.querySelector('.overview').textContent =
+      movie.overview || 'Sinopse ainda não disponível em português.';
+    let videos = movie.videos?.results || [];
+    if (!videos.some((video) => video.site === 'YouTube' && video.type === 'Trailer')) {
+      try {
+        const alternateVideos = await request(
+          `/movie/${route.id}/videos`,
+          { language: 'en-US' },
+          signal,
+        );
+        videos = [...videos, ...(alternateVideos.results || [])];
+      } catch (error) {
+        if (error.name === 'AbortError') return;
+      }
+    }
+    if (signal.aborted || disposed) return;
+    const video = videos.find(
+      (item) =>
+        item.site === 'YouTube' && item.type === 'Trailer' && /^[\w-]+$/.test(item.key),
+    );
+    if (video) {
+      const link = article.querySelector('[data-trailer]');
+      link.href = `https://www.youtube.com/watch?v=${encodeURIComponent(video.key)}`;
+      link.hidden = false;
+    } else article.querySelector('[data-no-trailer]').hidden = false;
+  }
+  // Cancela a consulta anterior, escolhe o template da rota e carrega seus dados. Trata
+  // estados vazios, erros e sugestões de títulos.
   async function render() {
     abort?.abort();
     abort = new AbortController();
@@ -157,7 +207,7 @@ export function mountApplication(root) {
     
     status('Carregando filmes…');
     try {
-      
+      if (route.name === 'details') { await loadDetails(route, signal); return; }
       const query = 
         { path: '/movie/popular', params: {page: route.page, include_adult: false} };
       const data = await request(query.path, query.params, signal);

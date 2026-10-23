@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/global.css';
 import './styles/components.css';
 import './styles/home.css';
+import './styles/details.css';
 import './styles/not-found.css';
 import App from './App.jsx';
 
