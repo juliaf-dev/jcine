@@ -16,6 +16,7 @@ import details from '../pages/Details.html?raw';
 import search from '../pages/Search.html?raw';
 import { setupFilters, filterFormUrl } from './filterController.js';
 import { searchParams, searchRequest, isValidYear } from '../utils/searchFilters.js';
+import { suggestMovies } from '../utils/fuzzySearch.js';
 const getFavorites = () => [];
 const pages = { home, notFound, details, search };
 const pageTitles = {
@@ -217,8 +218,33 @@ export function mountApplication(root) {
         { path: '/movie/popular', params: {page: route.page, include_adult: false} };
       const data = await request(query.path, query.params, signal);
       if (signal.aborted || disposed) return;
-      
-      
+      const yearLabel = route.filters?.year ? `, de ${route.filters.year}` : '';
+            if (
+        route.name === 'search' &&
+        route.filters.mode === 'titulo' &&
+        !data.results.length &&
+        route.page === 1
+      ) {
+        status('Nenhum resultado exato. Procurando títulos parecidos…');
+        const suggestions = await suggestMovies(
+          route.query,
+          route.filters.year,
+          signal,
+        );
+        if (signal.aborted || disposed) return;
+        if (suggestions.length) {
+          status(
+            'Você quis dizer um destes filmes? Selecione “Saiba mais” para abrir os detalhes.',
+          );
+          setResultLabel(
+            `${suggestions.length} sugestões de títulos parecidos ` +
+            `com “${route.query}”${yearLabel}.`,
+          );
+          renderCards(suggestions);
+          return;
+        }
+      }
+
       status('');
       if (!data.results.length) showEmptyResults(route);
       renderCards(data.results);
