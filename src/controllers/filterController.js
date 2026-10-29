@@ -1,6 +1,7 @@
 import {
   GENRES,
   LANGUAGES,
+  SORTS,
   readFilters,
   searchParams,
 } from '../utils/searchFilters.js';
@@ -32,9 +33,29 @@ export function setupFilters(form, route) {
     genero: route.filters.genre,
     nota: route.filters.rating || '0',
     idioma: route.filters.language,
+    ordem: route.filters.sort,
     classificacao: route.filters.certification,
   }))
     if (form.elements[name]) form.elements[name].value = value;
+  const sortInput = form.elements.ordem;
+  const sortToggle = form.querySelector('[data-sort-toggle]');
+  const sortArrow = form.querySelector('[data-sort-arrow]');
+  const sortLabel = form.querySelector('[data-sort-label]');
+  function syncSort() {
+    sortArrow.textContent = sortInput.value === 'popularity.desc' ? '↑' : '↓';
+    sortLabel.textContent = SORTS[sortInput.value];
+    sortToggle.setAttribute(
+      'aria-label',
+      `Alternar ordenação por popularidade; atual: ${SORTS[sortInput.value]}`,
+    );
+  }
+  sortToggle.addEventListener('click', () => {
+    sortInput.value = sortInput.value === 'popularity.desc'
+      ? 'popularity.asc'
+      : 'popularity.desc';
+    syncSort();
+  });
+  syncSort();
   // Atualiza o valor acessível e o texto exibido ao lado da barra de nota.
   function sync() {
     // Atualiza a nota enquanto a barra é arrastada, sem enviar o formulário.

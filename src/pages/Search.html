@@ -78,6 +78,22 @@
             <option value="">Todos os idiomas</option>
           </select>
         </div>
+        <div>
+          <span class="filter-label">Ordenar por popularidade</span>
+          <input
+            name="ordem"
+            type="hidden"
+            value="popularity.desc"
+          />
+          <button
+            class="btn btn-outline-light sort-toggle"
+            type="button"
+            data-sort-toggle
+          >
+            <span aria-hidden="true" data-sort-arrow></span>
+            <span data-sort-label></span>
+          </button>
+        </div>
         <div class="rating-filter">
           <div class="rating-heading">
             <label for="filter-rating">Nota mínima</label>

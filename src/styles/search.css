@@ -93,6 +93,13 @@
   font-size: 12px;
 }
 
+.filter-label {
+  display: block;
+  margin-bottom: 7px;
+  color: #c0c9d9;
+  font-size: 12px;
+}
+
 .filter-fields input[type='number'],
 .filter-fields select {
   width: 100%;
@@ -103,6 +110,21 @@
   background: #090e1a;
   color: #f5f6fb;
   font-size: 13px;
+}
+
+.sort-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+}
+
+.sort-toggle [data-sort-arrow] {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .filter-fields select:focus-visible {
